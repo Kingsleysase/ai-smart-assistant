@@ -5,10 +5,12 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Mic, MicOff, Upload, Volume2, VolumeX, MessageSquare, Brain, Zap, Shield, Sparkles } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Mic, MicOff, Upload, Volume2, VolumeX, MessageSquare, Brain, Zap, Shield, Sparkles, Eye } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { BrowserSupport } from "@/components/browser-support"
 import { ApiStatus } from "@/components/api-status"
+import { ObjectDetection } from "@/components/object-detection"
 
 interface Message {
   id: string
@@ -37,6 +39,7 @@ export default function SmartAssistant() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [speechEnabled, setSpeechEnabled] = useState(true)
   const [currentTranscript, setCurrentTranscript] = useState("")
+  const [activeMode, setActiveMode] = useState("chat")
 
   const recognitionRef = useRef<SpeechRecognitionType | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -89,9 +92,9 @@ export default function SmartAssistant() {
 
     setTimeout(() => {
       speak(
-        "Welcome to your AI Smart Assistant. I'm ready to help you with questions and analyze images. Click the microphone to get started.",
+        "Welcome to your AI Smart Assistant! I can help you with conversations, analyze images, and detect objects in real-time using your camera. When you use object detection, I will automatically announce what I see. Try saying 'What's in front of me?' for object detection, or click the microphone to get started.",
       )
-    }, 1500)
+    }, 2000)
   }, [])
 
   useEffect(() => {
@@ -144,6 +147,21 @@ export default function SmartAssistant() {
   const handleUserMessage = async (content: string) => {
     if (!content.trim()) return
 
+    // Check for object detection commands
+    const lowerContent = content.toLowerCase()
+    if (
+      lowerContent.includes("what's in front") ||
+      lowerContent.includes("what do you see") ||
+      lowerContent.includes("detect objects") ||
+      lowerContent.includes("what can you see") ||
+      lowerContent.includes("look around")
+    ) {
+      setActiveMode("detection")
+      speak("Switching to object detection mode. I'll automatically announce what I see in front of you.")
+      return
+    }
+
+    // Continue with regular chat
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
@@ -257,7 +275,7 @@ export default function SmartAssistant() {
               </h1>
             </div>
             <p className="text-xl text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
-              Advanced voice-enabled AI assistant designed for accessibility and ease of use
+              Voice-enabled AI assistant with real-time object detection capabilities
             </p>
             <div className="flex items-center justify-center gap-6 mt-6 text-sm text-slate-400">
               <div className="flex items-center gap-2">
@@ -406,62 +424,92 @@ export default function SmartAssistant() {
             </CardContent>
           </Card>
 
-          {/* Chat Interface */}
-          <Card className="glass-effect border-slate-700/50 shadow-2xl mb-8">
-            <CardHeader className="border-b border-slate-700/50">
-              <h2 className="text-2xl font-semibold text-slate-200 flex items-center gap-3">
-                <MessageSquare className="w-6 h-6 text-blue-400" />
-                Conversation
-              </h2>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div
-                className="h-96 overflow-y-auto p-6 space-y-4 custom-scrollbar"
-                role="log"
-                aria-label="Conversation history"
+          {/* Feature Tabs */}
+          <Tabs value={activeMode} onValueChange={setActiveMode} className="mb-8">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border border-slate-700/50">
+              <TabsTrigger
+                value="chat"
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-300"
               >
-                {messages.length === 0 ? (
-                  <div className="text-center text-slate-400 py-16">
-                    <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50 inline-block mb-4">
-                      <MessageSquare className="w-12 h-12 opacity-50" />
-                    </div>
-                    <p className="text-xl font-medium">Ready to assist you</p>
-                    <p className="text-slate-500 mt-2">Start by speaking or uploading an image</p>
-                  </div>
-                ) : (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        "p-4 rounded-2xl max-w-4xl transition-all duration-300 animate-fade-in",
-                        message.type === "user"
-                          ? "bg-gradient-to-r from-blue-600/20 to-blue-700/20 border border-blue-500/30 ml-8"
-                          : "bg-gradient-to-r from-slate-700/50 to-slate-800/50 border border-slate-600/30 mr-8",
-                      )}
-                      role="article"
-                      aria-label={`${message.type === "user" ? "Your message" : "Assistant response"}`}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div
-                          className={cn(
-                            "font-semibold text-sm px-3 py-1 rounded-full",
-                            message.type === "user"
-                              ? "bg-blue-500/20 text-blue-300"
-                              : "bg-emerald-500/20 text-emerald-300",
-                          )}
-                        >
-                          {message.type === "user" ? "You" : "Assistant"}
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger
+                value="detection"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-300"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Object Detection
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="chat" className="mt-6">
+              {/* Chat Interface */}
+              <Card className="glass-effect border-slate-700/50 shadow-2xl">
+                <CardHeader className="border-b border-slate-700/50">
+                  <h2 className="text-2xl font-semibold text-slate-200 flex items-center gap-3">
+                    <MessageSquare className="w-6 h-6 text-blue-400" />
+                    Conversation
+                  </h2>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div
+                    className="h-96 overflow-y-auto p-6 space-y-4 custom-scrollbar"
+                    role="log"
+                    aria-label="Conversation history"
+                  >
+                    {messages.length === 0 ? (
+                      <div className="text-center text-slate-400 py-16">
+                        <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50 inline-block mb-4">
+                          <MessageSquare className="w-12 h-12 opacity-50" />
                         </div>
-                        <div className="text-xs text-slate-400 font-mono">{message.timestamp.toLocaleTimeString()}</div>
+                        <p className="text-xl font-medium">Ready to assist you</p>
+                        <p className="text-slate-500 mt-2">
+                          Start by speaking, or try voice commands like "What's in front of me?"
+                        </p>
                       </div>
-                      <p className="text-lg leading-relaxed text-slate-200">{message.content}</p>
-                    </div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </CardContent>
-          </Card>
+                    ) : (
+                      messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={cn(
+                            "p-4 rounded-2xl max-w-4xl transition-all duration-300 animate-fade-in",
+                            message.type === "user"
+                              ? "bg-gradient-to-r from-blue-600/20 to-blue-700/20 border border-blue-500/30 ml-8"
+                              : "bg-gradient-to-r from-slate-700/50 to-slate-800/50 border border-slate-600/30 mr-8",
+                          )}
+                          role="article"
+                          aria-label={`${message.type === "user" ? "Your message" : "Assistant response"}`}
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <div
+                              className={cn(
+                                "font-semibold text-sm px-3 py-1 rounded-full",
+                                message.type === "user"
+                                  ? "bg-blue-500/20 text-blue-300"
+                                  : "bg-emerald-500/20 text-emerald-300",
+                              )}
+                            >
+                              {message.type === "user" ? "You" : "Assistant"}
+                            </div>
+                            <div className="text-xs text-slate-400 font-mono">
+                              {message.timestamp.toLocaleTimeString()}
+                            </div>
+                          </div>
+                          <p className="text-lg leading-relaxed text-slate-200">{message.content}</p>
+                        </div>
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="detection" className="mt-6">
+              <ObjectDetection onSpeak={speak} isEnabled={speechEnabled} />
+            </TabsContent>
+          </Tabs>
 
           {/* Instructions */}
           <Card className="glass-effect border-slate-700/50 shadow-2xl">
@@ -471,44 +519,58 @@ export default function SmartAssistant() {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-blue-500/20 border border-blue-500/30 mt-1">
-                      <Mic className="w-4 h-4 text-blue-400" />
+                  <h3 className="font-semibold text-slate-200 text-lg">💬 Chat Features</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-blue-500/20 border border-blue-500/30 mt-1">
+                        <Mic className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-200 mb-1">Voice Input</h4>
+                        <p className="text-slate-400 text-sm">Click "Start Voice" and speak your question</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-1">Voice Input</h3>
-                      <p className="text-slate-400">Click "Start Voice" and speak your question clearly</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 mt-1">
-                      <Upload className="w-4 h-4 text-purple-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-1">Image Analysis</h3>
-                      <p className="text-slate-400">Upload images for detailed AI-powered descriptions</p>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 mt-1">
+                        <Upload className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-200 mb-1">Image Analysis</h4>
+                        <p className="text-slate-400 text-sm">Upload images for AI descriptions</p>
+                      </div>
                     </div>
                   </div>
                 </div>
+
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30 mt-1">
-                      <Volume2 className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-semibold text-slate-200 text-lg">👁️ Object Detection</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 mt-1">
+                        <Eye className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-200 mb-1">Real-time Detection</h4>
+                        <p className="text-slate-400 text-sm">Say "What's in front of me?" or use the detection tab</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-1">Speech Control</h3>
-                      <p className="text-slate-400">Toggle speech output or stop speaking anytime</p>
+                    <div className="text-slate-400 text-sm">
+                      <p>• Continuous scanning of your environment</p>
+                      <p>• Automatic voice announcements</p>
+                      <p>• Detects people, vehicles, objects</p>
+                      <p>• Works with camera permissions</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-amber-500/20 border border-amber-500/30 mt-1">
-                      <Shield className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-200 mb-1">Accessibility</h3>
-                      <p className="text-slate-400">Full screen reader and keyboard navigation support</p>
-                    </div>
-                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <h4 className="font-semibold text-blue-300 mb-2">🎙️ Voice Commands</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-300">
+                  <p>• "What's in front of me?" - Object detection</p>
+                  <p>• "What do you see?" - Camera analysis</p>
+                  <p>• "Detect objects" - Start scanning</p>
+                  <p>• "Look around" - Environmental scan</p>
                 </div>
               </div>
             </CardContent>
