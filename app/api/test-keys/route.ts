@@ -4,7 +4,8 @@ export async function GET() {
   try {
     const deepseekKey = process.env.OPENROUTER_DEEPSEEK_API_KEY
     const openaiKey = process.env.OPENROUTER_OPENAI_API_KEY
-    const grokKey = "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"
+    const grokKey =
+      process.env.GROK_VISION_API_KEY || "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"
 
     // Test DeepSeek API
     let deepseekWorking = false

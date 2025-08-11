@@ -136,30 +136,14 @@ export function Navigation({ onSpeak, isEnabled }: NavigationProps) {
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_API_KEY}`,
-      )
+      const response = await fetch(`/api/navigation?action=reverse-geocode&lat=${lat}&lng=${lng}`)
 
       if (response.ok) {
         const data = await response.json()
-        return data.features[0]?.place_name || "Unknown location"
+        return data.address || "Unknown location"
       }
     } catch (err) {
-      console.error("Mapbox reverse geocoding failed:", err)
-    }
-
-    // Fallback to HERE Maps
-    try {
-      const response = await fetch(
-        `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${lat},${lng}&apiKey=${process.env.HERE_MAP_API_KEY}`,
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        return data.items[0]?.address?.label || "Unknown location"
-      }
-    } catch (err) {
-      console.error("HERE reverse geocoding failed:", err)
+      console.error("Reverse geocoding failed:", err)
     }
 
     return "Unknown location"

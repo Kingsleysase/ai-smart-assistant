@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const base64Image = buffer.toString("base64")
     const mimeType = image.type || "image/jpeg"
 
-    // Use the provided Grok 2 Vision API key
-    const grokApiKey = "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"
+    const grokApiKey =
+      process.env.GROK_VISION_API_KEY || "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"
 
     let description = ""
     let apiUsed = ""
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.error("Grok API error:", error)
-      
+
       // Fallback to mock response with enhanced object detection
       description = generateEnhancedMockDescription()
       apiUsed = "Enhanced Mock Analysis (Grok API Unavailable)"
@@ -114,43 +114,195 @@ function generateEnhancedMockDescription(): string {
 
 function extractObjectsFromDescription(description: string) {
   const commonObjects = [
-    "person", "people", "man", "woman", "child", "baby", "face", "hand", "hands",
-    "car", "vehicle", "truck", "bus", "bicycle", "motorcycle", "traffic", "road", "street",
-    "chair", "table", "desk", "bed", "sofa", "couch", "furniture",
-    "door", "window", "wall", "floor", "ceiling", "stairs", "elevator",
-    "tree", "plant", "flower", "flowers", "grass", "vegetation", "garden",
-    "building", "house", "structure", "architecture",
-    "phone", "smartphone", "computer", "laptop", "screen", "monitor", "television", "tv",
-    "book", "books", "paper", "document", "text", "sign", "poster",
-    "bottle", "cup", "mug", "glass", "plate", "bowl", "container",
-    "food", "apple", "banana", "fruit", "bread", "meal",
-    "dog", "cat", "bird", "animal", "pet",
-    "bag", "backpack", "purse", "luggage", "suitcase",
-    "clock", "watch", "time",
-    "lamp", "light", "lighting", "bulb",
-    "mirror", "picture", "painting", "photo", "artwork", "frame",
-    "box", "package", "container", "storage",
-    "shelf", "cabinet", "drawer", "closet",
-    "kitchen", "refrigerator", "microwave", "oven", "sink", "stove",
-    "bathroom", "toilet", "shower", "bathtub", "towel",
-    "bedroom", "pillow", "blanket", "sheet", "mattress",
-    "curtain", "blinds", "drapes",
-    "umbrella", "hat", "cap", "helmet",
-    "glasses", "sunglasses", "eyewear",
-    "jewelry", "necklace", "ring", "earrings", "bracelet",
-    "shoes", "boots", "sandals", "footwear",
-    "clothing", "shirt", "pants", "dress", "jacket", "coat", "sweater",
-    "wallet", "keys", "money", "card",
-    "pen", "pencil", "marker", "writing",
-    "notebook", "magazine", "newspaper", "calendar",
-    "camera", "headphones", "speaker", "microphone", "audio",
-    "remote", "controller", "device", "gadget",
-    "toy", "game", "ball", "sports",
-    "candle", "vase", "decoration", "ornament",
-    "tool", "equipment", "machine", "appliance",
-    "wire", "cable", "cord", "plug",
-    "switch", "button", "control", "panel",
-    "handle", "knob", "lever", "mechanism"
+    "person",
+    "people",
+    "man",
+    "woman",
+    "child",
+    "baby",
+    "face",
+    "hand",
+    "hands",
+    "car",
+    "vehicle",
+    "truck",
+    "bus",
+    "bicycle",
+    "motorcycle",
+    "traffic",
+    "road",
+    "street",
+    "chair",
+    "table",
+    "desk",
+    "bed",
+    "sofa",
+    "couch",
+    "furniture",
+    "door",
+    "window",
+    "wall",
+    "floor",
+    "ceiling",
+    "stairs",
+    "elevator",
+    "tree",
+    "plant",
+    "flower",
+    "flowers",
+    "grass",
+    "vegetation",
+    "garden",
+    "building",
+    "house",
+    "structure",
+    "architecture",
+    "phone",
+    "smartphone",
+    "computer",
+    "laptop",
+    "screen",
+    "monitor",
+    "television",
+    "tv",
+    "book",
+    "books",
+    "paper",
+    "document",
+    "text",
+    "sign",
+    "poster",
+    "bottle",
+    "cup",
+    "mug",
+    "glass",
+    "plate",
+    "bowl",
+    "container",
+    "food",
+    "apple",
+    "banana",
+    "fruit",
+    "bread",
+    "meal",
+    "dog",
+    "cat",
+    "bird",
+    "animal",
+    "pet",
+    "bag",
+    "backpack",
+    "purse",
+    "luggage",
+    "suitcase",
+    "clock",
+    "watch",
+    "time",
+    "lamp",
+    "light",
+    "lighting",
+    "bulb",
+    "mirror",
+    "picture",
+    "painting",
+    "photo",
+    "artwork",
+    "frame",
+    "box",
+    "package",
+    "container",
+    "storage",
+    "shelf",
+    "cabinet",
+    "drawer",
+    "closet",
+    "kitchen",
+    "refrigerator",
+    "microwave",
+    "oven",
+    "sink",
+    "stove",
+    "bathroom",
+    "toilet",
+    "shower",
+    "bathtub",
+    "towel",
+    "bedroom",
+    "pillow",
+    "blanket",
+    "sheet",
+    "mattress",
+    "curtain",
+    "blinds",
+    "drapes",
+    "umbrella",
+    "hat",
+    "cap",
+    "helmet",
+    "glasses",
+    "sunglasses",
+    "eyewear",
+    "jewelry",
+    "necklace",
+    "ring",
+    "earrings",
+    "bracelet",
+    "shoes",
+    "boots",
+    "sandals",
+    "footwear",
+    "clothing",
+    "shirt",
+    "pants",
+    "dress",
+    "jacket",
+    "coat",
+    "sweater",
+    "wallet",
+    "keys",
+    "money",
+    "card",
+    "pen",
+    "pencil",
+    "marker",
+    "writing",
+    "notebook",
+    "magazine",
+    "newspaper",
+    "calendar",
+    "camera",
+    "headphones",
+    "speaker",
+    "microphone",
+    "audio",
+    "remote",
+    "controller",
+    "device",
+    "gadget",
+    "toy",
+    "game",
+    "ball",
+    "sports",
+    "candle",
+    "vase",
+    "decoration",
+    "ornament",
+    "tool",
+    "equipment",
+    "machine",
+    "appliance",
+    "wire",
+    "cable",
+    "cord",
+    "plug",
+    "switch",
+    "button",
+    "control",
+    "panel",
+    "handle",
+    "knob",
+    "lever",
+    "mechanism",
   ]
 
   const detections = []
@@ -159,38 +311,53 @@ function extractObjectsFromDescription(description: string) {
   for (const object of commonObjects) {
     const regex = new RegExp(`\\b${object}s?\\b`, "gi")
     const matches = lowerDescription.match(regex)
-    
+
     if (matches) {
       // Count occurrences and determine confidence
       const count = matches.length
       let confidence = 0.8
 
       // Adjust confidence based on context
-      if (lowerDescription.includes(`${object}s`) || lowerDescription.includes(`multiple ${object}`) || lowerDescription.includes(`several ${object}`)) {
+      if (
+        lowerDescription.includes(`${object}s`) ||
+        lowerDescription.includes(`multiple ${object}`) ||
+        lowerDescription.includes(`several ${object}`)
+      ) {
         confidence = 0.9
       }
-      if (lowerDescription.includes(`appears to be`) || lowerDescription.includes(`looks like`) || lowerDescription.includes(`seems to`)) {
+      if (
+        lowerDescription.includes(`appears to be`) ||
+        lowerDescription.includes(`looks like`) ||
+        lowerDescription.includes(`seems to`)
+      ) {
         confidence = 0.6
       }
-      if (lowerDescription.includes(`clearly`) || lowerDescription.includes(`obviously`) || lowerDescription.includes(`definitely`)) {
+      if (
+        lowerDescription.includes(`clearly`) ||
+        lowerDescription.includes(`obviously`) ||
+        lowerDescription.includes(`definitely`)
+      ) {
         confidence = 0.95
       }
 
       // Check for quantity indicators
       let detectedCount = 1
-      const quantityRegex = new RegExp(`(\\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|many|multiple)\\s+${object}s?`, "gi")
+      const quantityRegex = new RegExp(
+        `(\\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|many|multiple)\\s+${object}s?`,
+        "gi",
+      )
       const quantityMatch = lowerDescription.match(quantityRegex)
-      
+
       if (quantityMatch) {
         const quantityText = quantityMatch[0].toLowerCase()
-        if (quantityText.includes('two') || quantityText.includes('2')) detectedCount = 2
-        else if (quantityText.includes('three') || quantityText.includes('3')) detectedCount = 3
-        else if (quantityText.includes('four') || quantityText.includes('4')) detectedCount = 4
-        else if (quantityText.includes('five') || quantityText.includes('5')) detectedCount = 5
-        else if (quantityText.includes('several') || quantityText.includes('multiple')) detectedCount = 3
-        else if (quantityText.includes('many')) detectedCount = 5
+        if (quantityText.includes("two") || quantityText.includes("2")) detectedCount = 2
+        else if (quantityText.includes("three") || quantityText.includes("3")) detectedCount = 3
+        else if (quantityText.includes("four") || quantityText.includes("4")) detectedCount = 4
+        else if (quantityText.includes("five") || quantityText.includes("5")) detectedCount = 5
+        else if (quantityText.includes("several") || quantityText.includes("multiple")) detectedCount = 3
+        else if (quantityText.includes("many")) detectedCount = 5
         else if (/\d+/.test(quantityText)) {
-          const num = parseInt(quantityText.match(/\d+/)?.[0] || '1')
+          const num = Number.parseInt(quantityText.match(/\d+/)?.[0] || "1")
           if (num > 0 && num < 20) detectedCount = num
         }
       }

@@ -8,8 +8,7 @@ export async function GET(request: NextRequest) {
 
   if (action === "reverse-geocode" && lat && lng) {
     try {
-      // Try Mapbox first
-      const mapboxKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY
+      const mapboxKey = process.env.MAPBOX_API_KEY
       if (mapboxKey) {
         const response = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxKey}&types=address,poi`,
@@ -55,8 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Origin and destination required" }, { status: 400 })
     }
 
-    // Try Mapbox first
-    const mapboxKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY
+    const mapboxKey = process.env.MAPBOX_API_KEY
     if (mapboxKey) {
       try {
         const mapboxResult = await getMapboxDirections(origin, destination, mode, mapboxKey)
